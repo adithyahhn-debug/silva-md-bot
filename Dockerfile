@@ -22,7 +22,11 @@ RUN apt-get update -qq && \
 
 # Install node modules
 COPY .npmrc package.json ./
-RUN npm install
+# Some transitive deps (e.g. libsignal-node) are git dependencies using SSH URLs; no ssh client/keys in the image, so rewrite to anonymous HTTPS
+RUN git config --global url."https://github.com/".insteadOf ssh://git@github.com/ && \
+    git config --global --add url."https://github.com/".insteadOf git@github.com: && \
+    git config --global --add url."https://github.com/".insteadOf git+ssh://git@github.com/ && \
+    npm install
 
 # Copy application code
 COPY . .
